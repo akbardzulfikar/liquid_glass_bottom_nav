@@ -1,3 +1,8 @@
+## 0.0.6
+
+* Add demo GIF placeholder to README — drop `assets/demo.gif` to activate.
+* Wire `assets/` directory for hosting demo media.
+
 ## 0.0.5
 
 * Add `example/` app with interactive demos: dark/light mode toggle, 3/4/5 tab selector, active color picker, icon size slider, and legacy fallback toggle.

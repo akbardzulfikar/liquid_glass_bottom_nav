@@ -4,13 +4,15 @@ A floating frosted-glass pill bottom navigation bar for Flutter. Features a phys
 
 Automatically falls back to a standard Material bottom nav on devices that don't support Impeller (Skia, web, Windows, Linux).
 
+![LiquidGlassNavBar demo](https://raw.githubusercontent.com/akbardzulfikar/liquid_glass_bottom_nav/main/assets/demo.gif)
+
 ---
 
 ## Installation
 
 ```yaml
 dependencies:
-  liquid_glass_bottom_nav: ^0.0.5
+  liquid_glass_bottom_nav: ^0.0.6
 ```
 
 ---
