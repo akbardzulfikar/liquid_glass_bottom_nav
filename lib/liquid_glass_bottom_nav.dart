@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'src/liquid_glass_renderer/liquid_glass_renderer.dart'
     show LiquidGlass, LiquidGlassSettings, LiquidRoundedSuperellipse;
@@ -59,20 +60,22 @@ class LiquidGlassNavBar extends StatefulWidget {
 
 class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _scaleCtrl = AnimationController(
+  late final AnimationController _tiltCtrl = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 80),
+    duration: const Duration(milliseconds: 150),
+    lowerBound: -1.0,
+    upperBound: 1.0,
+    value: 0.0,
   );
-  late final Animation<double> _scale = Tween<double>(
-    begin: 1.0,
-    end: 1.12,
-  ).animate(CurvedAnimation(parent: _scaleCtrl, curve: Curves.easeOut));
+  Timer? _dragDecayTimer;
 
   int? _dragIndex;
+  double? _dragX;
 
   @override
   void dispose() {
-    _scaleCtrl.dispose();
+    _tiltCtrl.dispose();
+    _dragDecayTimer?.cancel();
     super.dispose();
   }
 
@@ -93,18 +96,20 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
     }
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalMargin = screenWidth < 360 ? widget.insets / 2 : widget.insets;
     final activeColor = widget.activeColor ?? Theme.of(context).colorScheme.primary;
     final inactiveColor = widget.inactiveColor ?? Theme.of(context).colorScheme.onSurface;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Positioned(
-      left: widget.insets,
-      right: widget.insets,
+      left: horizontalMargin,
+      right: horizontalMargin,
       bottom: bottomPadding + widget.insets,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(34),
-          boxShadow: [
+      child: Container(
+        decoration: ShapeDecoration(
+          shape: const LiquidRoundedSuperellipse(borderRadius: 34.0),
+          shadows: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 0,
@@ -116,130 +121,210 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
               offset: const Offset(0, 8),
             ),
           ],
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.12)
-                : Colors.white.withValues(alpha: 0.6),
-            width: 1.5,
-          ),
         ),
-        child: LiquidGlass.withOwnLayer(
-          shape: LiquidRoundedSuperellipse(borderRadius: 34.0),
-          settings: LiquidGlassSettings(
-            glassColor: isDark
-                ? Colors.white.withValues(alpha: 0.07)
-                : Colors.white.withValues(alpha: 0.15),
-            thickness: 18,
-            blur: 3,
-            saturation: 2.2,
-            lightIntensity: 0.6,
-            ambientStrength: 0.15,
-          ),
-          child: SizedBox(
-            height: 68,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final itemWidth = constraints.maxWidth / widget.items.length;
-                final displayIndex = _dragIndex ?? widget.selectedIndex;
-
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTapUp: (details) {
-                    widget.onTap(
-                      _indexFromX(details.localPosition.dx, itemWidth),
-                    );
-                  },
-                  onHorizontalDragStart: (details) {
-                    final index =
-                        _indexFromX(details.localPosition.dx, itemWidth);
-                    setState(() => _dragIndex = index);
-                    _scaleCtrl.forward();
-                  },
-                  onHorizontalDragUpdate: (details) {
-                    final index =
-                        _indexFromX(details.localPosition.dx, itemWidth);
-                    if (index != _dragIndex) {
-                      setState(() => _dragIndex = index);
-                    }
-                  },
-                  onHorizontalDragEnd: (_) {
-                    if (_dragIndex != null) widget.onTap(_dragIndex!);
-                    setState(() => _dragIndex = null);
-                    _scaleCtrl.reverse();
-                  },
-                  onHorizontalDragCancel: () {
-                    setState(() => _dragIndex = null);
-                    _scaleCtrl.reverse();
-                  },
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      AnimatedPositioned(
-                        duration: Duration(
-                          milliseconds: _dragIndex != null ? 120 : 400,
-                        ),
-                        curve: _dragIndex != null
-                            ? Curves.easeOut
-                            : Curves.elasticOut,
-                        left: displayIndex * itemWidth + 4,
-                        width: itemWidth - 8,
-                        top: 8,
-                        height: 52,
-                        child: AnimatedBuilder(
-                          animation: _scale,
-                          builder: (context, child) => Transform.scale(
-                            scale: _scale.value,
-                            child: child,
-                          ),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: activeColor.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Row(
-                        children: List.generate(widget.items.length, (index) {
-                          final item = widget.items[index];
-                          final bool isActive = index == displayIndex;
-                          return SizedBox(
-                            width: itemWidth,
-                            height: 68,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  item.icon,
-                                  size: 22,
-                                  color: isActive ? activeColor : inactiveColor,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  item.label,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: isActive
-                                            ? activeColor
-                                            : inactiveColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ),
-                    ],
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: Container(
+                foregroundDecoration: ShapeDecoration(
+                  shape: LiquidRoundedSuperellipse(
+                    borderRadius: 34.0,
+                    side: BorderSide(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.white.withValues(alpha: 0.6),
+                      width: 1.0,
+                    ),
                   ),
-                );
-              },
+                ),
+                child: LiquidGlass.withOwnLayer(
+                  shape: const LiquidRoundedSuperellipse(borderRadius: 34.0),
+                  settings: LiquidGlassSettings(
+                    glassColor: isDark
+                        ? Colors.white.withValues(alpha: 0.07)
+                        : Colors.white.withValues(alpha: 0.15),
+                    thickness: 18,
+                    blur: 3,
+                    saturation: 2.2,
+                    lightIntensity: isDark ? 0.05 : 0.6,
+                    ambientStrength: 0.15,
+                  ),
+                  child: const SizedBox.expand(),
+                ),
+              ),
             ),
-          ),
+            SizedBox(
+              height: 68,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final itemWidth = constraints.maxWidth / widget.items.length;
+                  final displayIndex = _dragIndex ?? widget.selectedIndex;
+
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTapUp: (details) {
+                      widget.onTap(
+                        _indexFromX(details.localPosition.dx, itemWidth),
+                      );
+                    },
+                    onHorizontalDragStart: (details) {
+                      final x = details.localPosition.dx;
+                      final index = _indexFromX(x, itemWidth);
+                      setState(() {
+                        _dragIndex = index;
+                        _dragX = x;
+                      });
+                    },
+                    onHorizontalDragUpdate: (details) {
+                      final x = details.localPosition.dx;
+                      final index = _indexFromX(x, itemWidth);
+                      setState(() {
+                        _dragIndex = index;
+                        _dragX = x;
+                      });
+                      
+                      // Map delta.dx to tilt range [-1, 1]
+                      final targetTilt = (details.delta.dx / 12.0).clamp(-1.0, 1.0);
+                      _tiltCtrl.animateTo(targetTilt, duration: const Duration(milliseconds: 50), curve: Curves.easeOut);
+                      
+                      // Auto-reset if finger stops moving
+                      _dragDecayTimer?.cancel();
+                      _dragDecayTimer = Timer(const Duration(milliseconds: 80), () {
+                        if (mounted) {
+                          _tiltCtrl.animateTo(0.0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+                        }
+                      });
+                    },
+                    onHorizontalDragEnd: (_) {
+                      if (_dragIndex != null) widget.onTap(_dragIndex!);
+                      setState(() {
+                        _dragIndex = null;
+                        _dragX = null;
+                      });
+                      _dragDecayTimer?.cancel();
+                      _tiltCtrl.animateTo(0.0, duration: const Duration(milliseconds: 250), curve: Curves.elasticOut);
+                    },
+                    onHorizontalDragCancel: () {
+                      setState(() {
+                        _dragIndex = null;
+                        _dragX = null;
+                      });
+                      _dragDecayTimer?.cancel();
+                      _tiltCtrl.animateTo(0.0, duration: const Duration(milliseconds: 250), curve: Curves.elasticOut);
+                    },
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Builder(
+                          builder: (context) {
+                            final isDragging = _dragIndex != null;
+                            
+                            // Normal state: Original stadium pill capsule
+                            final normalWidth = itemWidth - 8; 
+                            final normalHeight = 58.0; // Taller, closer to the edges
+                            final normalTop = (68.0 - normalHeight) / 2;
+                            final normalLeft = displayIndex * itemWidth + 4.0;
+
+                            // Held state: Enlarged capsule (maintains horizontal pill shape)
+                            final heldWidth = itemWidth + 16.0; 
+                            final heldHeight = 74.0; // Overlaps top and bottom of 68px container
+                            final heldTop = (68.0 - heldHeight) / 2;
+                            
+                            // Track exact finger position clamped within the bar bounds
+                            final exactCenterX = _dragX?.clamp(0.0, constraints.maxWidth) 
+                                ?? (displayIndex * itemWidth + itemWidth / 2);
+                            final heldLeft = exactCenterX - (heldWidth / 2);
+
+                            return AnimatedPositioned(
+                              duration: Duration(
+                                // Shorter duration for position changes when dragging so it tightly tracks the finger
+                                milliseconds: isDragging ? 50 : 400,
+                              ),
+                              curve: isDragging ? Curves.easeOut : Curves.elasticOut,
+                              left: isDragging ? heldLeft : normalLeft,
+                              width: isDragging ? heldWidth : normalWidth,
+                              top: isDragging ? heldTop : normalTop,
+                              height: isDragging ? heldHeight : normalHeight,
+                              child: AnimatedBuilder(
+                                animation: _tiltCtrl,
+                                builder: (context, child) {
+                                  final tilt = _tiltCtrl.value;
+                                  final bounce = tilt.abs();
+                                  final rotation = tilt * 0.15; // Max 0.15 rad tilt
+                                  return Transform(
+                                    alignment: Alignment.center,
+                                    transform: Matrix4.diagonal3Values(1.0 + bounce * 0.15, 1.0 - bounce * 0.1, 1.0)
+                                      ..rotateZ(rotation),
+                                    child: child,
+                                  );
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(
+                                    milliseconds: isDragging ? 150 : 400,
+                                  ),
+                                  curve: isDragging ? Curves.easeOut : Curves.elasticOut,
+                                  decoration: BoxDecoration(
+                                    color: activeColor.withValues(
+                                      alpha: isDragging ? 0.25 : 0.15,
+                                    ),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: isDragging 
+                                        ? Border.all(
+                                            color: activeColor.withValues(alpha: 0.4),
+                                            width: 1.5,
+                                          )
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        ),
+                        Row(
+                          children: List.generate(widget.items.length, (index) {
+                            final item = widget.items[index];
+                            final bool isActive = index == displayIndex;
+                            return SizedBox(
+                              width: itemWidth,
+                              height: 68,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    item.icon,
+                                    size: 22,
+                                    color: isActive
+                                        ? activeColor
+                                        : inactiveColor,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    item.label,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: isActive
+                                              ? activeColor
+                                              : inactiveColor,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

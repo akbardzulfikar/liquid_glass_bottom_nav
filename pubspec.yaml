@@ -31,8 +31,6 @@ flutter:
     - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass_filter.frag
     - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass_arbitrary.frag
     - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass_final_render.frag
-    - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass_lighting.frag
-    - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass.frag
 
   # To add assets to your package, add an assets section, like this:
   # assets:
