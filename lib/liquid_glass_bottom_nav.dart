@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart'
+import 'src/liquid_glass_renderer/liquid_glass_renderer.dart'
     show LiquidGlass, LiquidGlassSettings, LiquidRoundedSuperellipse;
 
 class LiquidGlassNavItem {

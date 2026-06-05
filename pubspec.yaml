@@ -11,7 +11,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  liquid_glass_renderer: ^0.2.0
+  equatable: ^2.0.7
+  flutter_shaders: ^0.1.3
+  logging: ^1.3.0
+  motor: ^1.0.1
+  meta: ^1.16.0
 
 dev_dependencies:
   flutter_test:
@@ -21,8 +25,14 @@ dev_dependencies:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
-# The following section is specific to Flutter packages.
 flutter:
+  shaders:
+    - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass_geometry_blended.frag
+    - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass_filter.frag
+    - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass_arbitrary.frag
+    - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass_final_render.frag
+    - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass_lighting.frag
+    - lib/src/liquid_glass_renderer/assets/shaders/liquid_glass.frag
 
   # To add assets to your package, add an assets section, like this:
   # assets:
