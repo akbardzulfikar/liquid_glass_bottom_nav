@@ -10,7 +10,7 @@ Automatically falls back to a standard Material bottom nav on devices that don't
 
 ```yaml
 dependencies:
-  liquid_glass_bottom_nav: ^0.0.3
+  liquid_glass_bottom_nav: ^0.0.5
 ```
 
 ---

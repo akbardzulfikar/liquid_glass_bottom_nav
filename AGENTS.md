@@ -24,6 +24,15 @@ Use `[LGN-000]` for work not tied to a specific task.
 Backlog: `.claude/tasks/backlog.json` — source of truth for both Claude and Codex.
 GitHub Project: https://github.com/users/akbardzulfikar/projects/3
 
+## Workflow rules
+
+- **Before any commit** — ask the user whether a version bump is needed. Do not commit without confirming.
+- **After any change** — update both `.claude/` and `.codex/` to reflect the current state:
+  - `.claude/tasks/backlog.json` — update task status, `updated` date
+  - `.codex/pm/decisions.md` — log any significant decisions made
+  - `.codex/plans/` — create or update a plan file for non-trivial work
+- `CLAUDE.md` and `AGENTS.md` must stay in sync — changes to one apply to both.
+
 ## Key constraints
 
 - **Never animate a `LiquidGlass` shape's position or size** — forces expensive GPU re-render every frame.

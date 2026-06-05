@@ -1,3 +1,8 @@
+## 0.0.5
+
+* Add `example/` app with interactive demos: dark/light mode toggle, 3/4/5 tab selector, active color picker, icon size slider, and legacy fallback toggle.
+* Add `CLAUDE.md` and `AGENTS.md` with commit convention, renderer performance rules, and workflow guidelines.
+
 ## 0.0.4
 
 * Add `iconSize` param to control icon size across all tabs (default: 22).

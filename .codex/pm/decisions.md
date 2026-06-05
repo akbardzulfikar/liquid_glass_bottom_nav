@@ -18,3 +18,11 @@
 ## 2026-06-05 — Task ID prefix
 **Decision:** Use `LGN-` prefix (Liquid Glass Nav) for all task IDs.
 **Why:** Distinguishes tasks from other projects if backlog.json is ever referenced outside context.
+
+## 2026-06-05 — Workflow rules added to CLAUDE.md and AGENTS.md
+**Decision:** Before any commit, ask the user whether a version bump is needed. After any change, update `.claude/tasks/backlog.json` and `.codex/pm/decisions.md`. Both `CLAUDE.md` and `AGENTS.md` must stay in sync.
+**Why:** User explicitly requested this to prevent version drift and keep .claude/.codex current with the actual codebase state.
+
+## 2026-06-05 — LGN-007 example app shipped
+**Decision:** Example app at `example/lib/main.dart` includes interactive demos: dark/light toggle, 3/4/5 tab selector, active color swatches, icon size slider, legacy fallback toggle.
+**Why:** The example app is the primary way pub.dev users evaluate the package before adding it.

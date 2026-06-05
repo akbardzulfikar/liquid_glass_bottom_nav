@@ -33,9 +33,19 @@ Status values: `backlog` → `in_progress` → `review` → `done`
 - Max 16 shapes per `LiquidGlassBlendGroup`.
 - `LiquidGlassLayer` auto-falls back to `FakeGlass` on non-Impeller targets.
 
+## Workflow rules
+
+- **Before any commit** — ask the user whether a version bump is needed. Do not commit without confirming.
+- **After any change** — update both `.claude/` and `.codex/` to reflect the current state:
+  - `.claude/tasks/backlog.json` — update task status, `updated` date
+  - `.codex/pm/decisions.md` — log any significant decisions made
+  - `.codex/plans/` — create or update a plan file for non-trivial work
+- `CLAUDE.md` and `AGENTS.md` must stay in sync — changes to one apply to both.
+
 ## Publishing
 
-1. Bump `version` in `pubspec.yaml`
-2. Add entry to `CHANGELOG.md`
-3. `flutter pub publish --dry-run`
-4. `flutter pub publish`
+1. Ask user if version bump is needed before committing
+2. Bump `version` in `pubspec.yaml`
+3. Add entry to `CHANGELOG.md`
+4. `flutter pub publish --dry-run`
+5. `flutter pub publish`
