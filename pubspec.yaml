@@ -1,6 +1,6 @@
 name: liquid_glass_bottom_nav
 description: "A beautiful, liquid frosted-glass floating bottom navigation bar for Flutter."
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/akbardzulfikar/liquid_glass_bottom_nav
 repository: https://github.com/akbardzulfikar/liquid_glass_bottom_nav
 
@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  liquid_glass_renderer: ^0.2.0-dev.4
+  liquid_glass_renderer: ^0.2.0
 
 dev_dependencies:
   flutter_test:
