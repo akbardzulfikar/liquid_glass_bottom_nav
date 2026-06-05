@@ -231,7 +231,7 @@ class _SettingsPage extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: colorOptions.map((c) {
-              final selected = activeColor.value == c.value;
+              final selected = activeColor.toARGB32() == c.toARGB32();
               return GestureDetector(
                 onTap: () => onColorChange(c),
                 child: AnimatedContainer(
@@ -277,7 +277,8 @@ class _SettingsPage extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             value: forceLegacy,
             onChanged: onForceLegacyChange,
-            activeColor: activeColor,
+            activeThumbColor: activeColor,
+            activeTrackColor: activeColor.withValues(alpha: 0.5),
             title: Text(
               'Force legacy nav bar',
               style: theme.textTheme.bodyLarge,
