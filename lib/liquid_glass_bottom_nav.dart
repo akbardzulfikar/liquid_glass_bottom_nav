@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'src/liquid_glass_renderer/liquid_glass_renderer.dart'
-    show LiquidGlass, LiquidGlassSettings, LiquidRoundedSuperellipse;
+    show LiquidGlass, LiquidGlassSettings, LiquidRoundedSuperellipse,
+        GlassGlow, GlassGlowLayer;
 
 class LiquidGlassNavItem {
   final String id;
@@ -157,8 +158,8 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
                     borderRadius: 34.0,
                     side: BorderSide(
                       color: isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.white.withValues(alpha: 0.6),
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.white.withValues(alpha: 0.18),
                       width: 1.0,
                     ),
                   ),
@@ -167,13 +168,13 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
                   shape: const LiquidRoundedSuperellipse(borderRadius: 34.0),
                   settings: LiquidGlassSettings(
                     glassColor: isDark
-                        ? Colors.white.withValues(alpha: 0.07)
-                        : Colors.white.withValues(alpha: 0.15),
-                    thickness: 18,
-                    blur: 3,
-                    saturation: 2.2,
-                    lightIntensity: isDark ? 0.05 : 0.6,
-                    ambientStrength: 0.15,
+                        ? Colors.white.withValues(alpha: 0.04)
+                        : Colors.white.withValues(alpha: 0.05),
+                    thickness: 32,
+                    blur: 1,
+                    saturation: 1.8,
+                    lightIntensity: isDark ? 0.15 : 0.9,
+                    ambientStrength: 0.2,
                   ),
                   child: const SizedBox.expand(),
                 ),
@@ -467,6 +468,144 @@ class _LegacyNavBar extends StatelessWidget {
               ),
             );
           }),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// LiquidGlassBackButton
+// ---------------------------------------------------------------------------
+
+/// A floating frosted-glass back button with a chevron icon.
+///
+/// The glass shape is always static — press feedback is handled by a plain
+/// Flutter [AnimatedScale] so no shader cost occurs during interaction.
+///
+/// Falls back to a plain [IconButton] when [impellerSupported] is false.
+class LiquidGlassBackButton extends StatefulWidget {
+  /// Called when the button is tapped. Defaults to [Navigator.maybePop].
+  final VoidCallback? onTap;
+
+  /// Color of the chevron icon. Defaults to [ColorScheme.onSurface].
+  final Color? color;
+
+  /// Size of the glass pill. Defaults to 44.
+  final double size;
+
+  /// Corner radius of the glass shape. Defaults to 14.
+  final double borderRadius;
+
+  /// Whether the device supports Impeller. Defaults to true.
+  final bool impellerSupported;
+
+  const LiquidGlassBackButton({
+    super.key,
+    this.onTap,
+    this.color,
+    this.size = 44.0,
+    this.borderRadius = 14.0,
+    this.impellerSupported = true,
+  });
+
+  @override
+  State<LiquidGlassBackButton> createState() => _LiquidGlassBackButtonState();
+}
+
+class _LiquidGlassBackButtonState extends State<LiquidGlassBackButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pressCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 80),
+    reverseDuration: const Duration(milliseconds: 200),
+    lowerBound: 0.88,
+    upperBound: 1.0,
+    value: 1.0,
+  );
+
+  @override
+  void dispose() {
+    _pressCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(_) => _pressCtrl.reverse();
+  void _onTapUp(_) => _pressCtrl.forward();
+  void _onTapCancel() => _pressCtrl.forward();
+
+  @override
+  Widget build(BuildContext context) {
+    final iconColor = widget.color ?? Theme.of(context).colorScheme.onSurface;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (!widget.impellerSupported) {
+      return IconButton(
+        onPressed: widget.onTap ?? () => Navigator.of(context).maybePop(),
+        icon: Icon(Icons.chevron_left_rounded, color: iconColor),
+      );
+    }
+
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      onTap: widget.onTap ?? () => Navigator.of(context).maybePop(),
+      child: AnimatedBuilder(
+        animation: _pressCtrl,
+        builder: (context, child) => Transform.scale(
+          scale: _pressCtrl.value,
+          child: child,
+        ),
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: ShapeDecoration(
+            shape: LiquidRoundedSuperellipse(borderRadius: widget.borderRadius),
+            shadows: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 0,
+                spreadRadius: 1,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipPath(
+            clipper: ShapeBorderClipper(
+              shape: LiquidRoundedSuperellipse(borderRadius: widget.borderRadius),
+            ),
+            child: GlassGlowLayer(
+              child: GlassGlow(
+                glowColor: Colors.white.withValues(alpha: 0.35),
+                glowRadius: 1.2,
+                child: LiquidGlass.withOwnLayer(
+                  shape: LiquidRoundedSuperellipse(borderRadius: widget.borderRadius),
+                  settings: LiquidGlassSettings(
+                    glassColor: isDark
+                        ? Colors.white.withValues(alpha: 0.04)
+                        : Colors.white.withValues(alpha: 0.05),
+                    thickness: 32,
+                    blur: 1,
+                    saturation: 1.8,
+                    lightIntensity: isDark ? 0.15 : 0.9,
+                    ambientStrength: 0.2,
+                  ),
+                  child: SizedBox.expand(
+                    child: Icon(
+                      Icons.chevron_left_rounded,
+                      size: widget.size * 0.55,
+                      color: iconColor,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

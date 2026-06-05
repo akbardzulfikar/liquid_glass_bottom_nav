@@ -1,3 +1,8 @@
+## 0.0.7
+
+* Add `LiquidGlassBackButton` — floating frosted-glass back button with chevron icon, touch glow via `GlassGlow`, and press scale feedback. Falls back to plain `IconButton` on non-Impeller targets.
+* Tune glass settings for stronger liquid glass refraction: higher `thickness` (32), lower `blur` (1), reduced `glassColor` opacity — applies to both nav bar and back button.
+
 ## 0.0.6
 
 * Add demo GIF placeholder to README — drop `assets/demo.gif` to activate.

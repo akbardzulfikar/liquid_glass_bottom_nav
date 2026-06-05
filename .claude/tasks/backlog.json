@@ -10,7 +10,7 @@
       "role": "Package Co-author"
     }
   },
-  "next_id": 9,
+  "next_id": 10,
   "tasks": [
     {
       "id": "LGN-001",
@@ -107,6 +107,18 @@
       "created": "2026-06-05",
       "updated": "2026-06-05",
       "gh_issue_number": 8
+    },
+    {
+      "id": "LGN-009",
+      "title": "Add LiquidGlassBackButton widget",
+      "description": "Floating glass back button with GlassGlow touch glow, AnimatedScale press feedback, impellerSupported fallback. Tuned glass settings: thickness 32, blur 1 for stronger refraction.",
+      "assignee": "akbar",
+      "status": "done",
+      "priority": "medium",
+      "category": "feat",
+      "created": "2026-06-05",
+      "updated": "2026-06-05",
+      "gh_issue_number": 9
     }
   ],
   "github": {

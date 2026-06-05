@@ -345,28 +345,55 @@ class _PlaceholderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 56, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
-          const SizedBox(height: 16),
-          Text(
-            label,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+    return Stack(
+      children: [
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 56, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+              const SizedBox(height: 16),
+              Text(
+                label,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Switch tabs using the nav bar below',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(height: 32),
+              // Glass back button demo
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LiquidGlassBackButton(
+                    onTap: () {},
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'LiquidGlassBackButton',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: LiquidGlassNavBar.contentBottomInset),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Switch tabs using the nav bar below',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-            ),
-          ),
-          SizedBox(height: LiquidGlassNavBar.contentBottomInset),
-        ],
-      ),
+        ),
+        // Top-left back button overlay (as it would appear in a real screen)
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 12,
+          left: 16,
+          child: LiquidGlassBackButton(onTap: () {}),
+        ),
+      ],
     );
   }
 }

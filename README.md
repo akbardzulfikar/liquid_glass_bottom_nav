@@ -12,7 +12,7 @@ Automatically falls back to a standard Material bottom nav on devices that don't
 
 ```yaml
 dependencies:
-  liquid_glass_bottom_nav: ^0.0.6
+  liquid_glass_bottom_nav: ^0.0.7
 ```
 
 ---
@@ -159,6 +159,37 @@ LiquidGlassNavBar(
 | Constant | Value | Description |
 |---|---|---|
 | `LiquidGlassNavBar.contentBottomInset` | `96.0` | Bottom padding to add to scrollable content so it clears the floating nav bar |
+
+---
+
+## LiquidGlassBackButton
+
+A floating glass back button that matches the nav bar's visual language. Place it as a top-left overlay inside a `Stack`.
+
+```dart
+Stack(
+  children: [
+    YourPageContent(),
+    Positioned(
+      top: MediaQuery.of(context).padding.top + 12,
+      left: 16,
+      child: LiquidGlassBackButton(
+        onTap: () => Navigator.of(context).pop(),
+      ),
+    ),
+  ],
+)
+```
+
+### `LiquidGlassBackButton`
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `onTap` | `VoidCallback?` | `Navigator.maybePop` | Tap handler. Defaults to popping the current route. |
+| `color` | `Color?` | `colorScheme.onSurface` | Chevron icon color |
+| `size` | `double` | `44` | Width and height of the glass pill |
+| `borderRadius` | `double` | `14` | Corner radius of the glass shape |
+| `impellerSupported` | `bool` | `true` | Pass `false` to fall back to a plain `IconButton` |
 
 ---
 
