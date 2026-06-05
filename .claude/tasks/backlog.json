@@ -1,0 +1,113 @@
+{
+  "project": "liquid_glass_bottom_nav",
+  "team": {
+    "akbar": {
+      "name": "Akbar",
+      "role": "Package Author"
+    },
+    "billy": {
+      "name": "Billy",
+      "role": "Package Co-author"
+    }
+  },
+  "next_id": 8,
+  "tasks": [
+    {
+      "id": "LGN-001",
+      "title": "Publish v0.0.3 to pub.dev",
+      "description": "Bump pubspec.yaml and CHANGELOG.md for v0.0.3, run flutter pub publish. CHANGELOG: embed liquid_glass_renderer internally, add physics-based squish/stretch animations.",
+      "assignee": "akbar",
+      "status": "in_progress",
+      "priority": "high",
+      "category": "chore",
+      "created": "2026-06-05",
+      "updated": "2026-06-05",
+      "gh_issue_number": 1
+    },
+    {
+      "id": "LGN-002",
+      "title": "Add badge count support to nav items",
+      "description": "Add optional badgeCount to LiquidGlassNavItem. Show a small pill badge on the icon when count > 0. Badge renders above icon, disappears when count is 0 or null. Works in both Impeller and legacy modes.",
+      "assignee": null,
+      "status": "backlog",
+      "priority": "medium",
+      "category": "feature",
+      "created": "2026-06-05",
+      "updated": "2026-06-05",
+      "gh_issue_number": 2
+    },
+    {
+      "id": "LGN-003",
+      "title": "Add haptic feedback on tab switch",
+      "description": "Fire HapticFeedback.selectionClick() on tab tap and drag-end. Opt-in via enableHaptics constructor param (default: true).",
+      "assignee": null,
+      "status": "backlog",
+      "priority": "medium",
+      "category": "feature",
+      "created": "2026-06-05",
+      "updated": "2026-06-05",
+      "gh_issue_number": 3
+    },
+    {
+      "id": "LGN-004",
+      "title": "Customizable LiquidGlassSettings passthrough",
+      "description": "Expose LiquidGlassSettings as a constructor param on LiquidGlassNavBar so callers can tune thickness, blur, saturation, lightIntensity without forking the package.",
+      "assignee": null,
+      "status": "backlog",
+      "priority": "high",
+      "category": "feature",
+      "created": "2026-06-05",
+      "updated": "2026-06-05",
+      "gh_issue_number": 4
+    },
+    {
+      "id": "LGN-005",
+      "title": "Performance audit on mid-range Android",
+      "description": "Profile frame times during drag/tilt animation on a mid-range Android device (Impeller/Vulkan). Confirm glass geometry stays cached, no toImageSync() per frame. Document results.",
+      "assignee": null,
+      "status": "backlog",
+      "priority": "medium",
+      "category": "chore",
+      "created": "2026-06-05",
+      "updated": "2026-06-05",
+      "gh_issue_number": 5
+    },
+    {
+      "id": "LGN-006",
+      "title": "Upgrade embedded renderer when liquid_glass_renderer 0.2.0 stable ships",
+      "description": "Currently embeds 0.2.0-dev.4. When stable releases on pub.dev, update the embedded source files and shaders. Check for API changes in LiquidGlassSettings and LiquidGlassLayer.",
+      "assignee": null,
+      "status": "backlog",
+      "priority": "medium",
+      "category": "chore",
+      "created": "2026-06-05",
+      "updated": "2026-06-05",
+      "gh_issue_number": 6
+    },
+    {
+      "id": "LGN-007",
+      "title": "Improve example app with more demos",
+      "description": "Add a richer example app showing: dark mode toggle, 3/4/5 item variants, custom colors, badge count demo, legacy fallback preview.",
+      "assignee": null,
+      "status": "backlog",
+      "priority": "low",
+      "category": "chore",
+      "created": "2026-06-05",
+      "updated": "2026-06-05",
+      "gh_issue_number": 7
+    }
+  ],
+  "github": {
+    "owner": "akbardzulfikar",
+    "repo": "akbardzulfikar/liquid_glass_bottom_nav",
+    "project_number": 3,
+    "project_url": "https://github.com/users/akbardzulfikar/projects/3",
+    "project_id": "PVT_kwHOATq34M4BZzmS",
+    "status_field_id": "PVTSSF_lAHOATq34M4BZzmSzhUvuVI",
+    "status_options": {
+      "backlog": "f75ad846",
+      "in_progress": "47fc9ee4",
+      "done": "98236657"
+    }
+  }
+}

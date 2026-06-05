@@ -5,14 +5,25 @@ import 'src/liquid_glass_renderer/liquid_glass_renderer.dart'
 
 class LiquidGlassNavItem {
   final String id;
-  final IconData icon;
   final String label;
+
+  /// Material/Cupertino icon. Required unless [iconWidget] is provided.
+  final IconData? icon;
+
+  /// Custom icon widget. Takes priority over [icon] when provided.
+  /// Wrapped in [IconTheme] so widgets that respect it (Icon, SvgPicture, etc.)
+  /// automatically inherit the active/inactive color.
+  final Widget? iconWidget;
 
   const LiquidGlassNavItem({
     required this.id,
-    required this.icon,
     required this.label,
-  });
+    this.icon,
+    this.iconWidget,
+  }) : assert(
+          icon != null || iconWidget != null,
+          'LiquidGlassNavItem requires either icon or iconWidget.',
+        );
 }
 
 /// Floating pill bottom navigation bar with a sliding glass bubble indicator.
@@ -29,12 +40,22 @@ class LiquidGlassNavBar extends StatefulWidget {
   /// Whether the device supports Impeller rendering. Defaults to true.
   final bool impellerSupported;
 
-  /// Custom active color. Defaults to Theme.of(context).colorScheme.primary
+  /// Icon and label color for the selected tab.
+  /// Defaults to [ColorScheme.primary].
   final Color? activeColor;
-  
-  /// Custom inactive color. Defaults to Theme.of(context).colorScheme.onSurface (or onSurfaceVariant for legacy)
+
+  /// Icon and label color for unselected tabs.
+  /// Defaults to [ColorScheme.onSurface].
   final Color? inactiveColor;
-  
+
+  /// Size of the icon in each tab. Defaults to 22.
+  final double iconSize;
+
+  /// Label style applied to all tab labels.
+  /// Merged over [TextTheme.bodySmall] — only the properties you set override
+  /// the defaults. Color is always driven by [activeColor] / [inactiveColor].
+  final TextStyle? labelStyle;
+
   /// Inset padding (default is 16.0)
   final double insets;
 
@@ -51,6 +72,8 @@ class LiquidGlassNavBar extends StatefulWidget {
     this.impellerSupported = true,
     this.activeColor,
     this.inactiveColor,
+    this.iconSize = 22.0,
+    this.labelStyle,
     this.insets = 16.0,
   });
 
@@ -91,6 +114,8 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
         onTap: widget.onTap,
         activeColor: widget.activeColor,
         inactiveColor: widget.inactiveColor,
+        iconSize: widget.iconSize,
+        labelStyle: widget.labelStyle,
         insets: widget.insets,
       );
     }
@@ -285,18 +310,24 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
                           children: List.generate(widget.items.length, (index) {
                             final item = widget.items[index];
                             final bool isActive = index == displayIndex;
+                            final color = isActive ? activeColor : inactiveColor;
                             return SizedBox(
                               width: itemWidth,
                               height: 68,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    item.icon,
-                                    size: 22,
-                                    color: isActive
-                                        ? activeColor
-                                        : inactiveColor,
+                                  IconTheme(
+                                    data: IconThemeData(
+                                      color: color,
+                                      size: widget.iconSize,
+                                    ),
+                                    child: item.iconWidget ??
+                                        Icon(
+                                          item.icon,
+                                          size: widget.iconSize,
+                                          color: color,
+                                        ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
@@ -306,12 +337,8 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall
-                                        ?.copyWith(
-                                          color: isActive
-                                              ? activeColor
-                                              : inactiveColor,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                        ?.merge(widget.labelStyle)
+                                        .copyWith(color: color, fontWeight: widget.labelStyle?.fontWeight ?? FontWeight.w500),
                                   ),
                                 ],
                               ),
@@ -341,6 +368,8 @@ class _LegacyNavBar extends StatelessWidget {
   final ValueChanged<int> onTap;
   final Color? activeColor;
   final Color? inactiveColor;
+  final double iconSize;
+  final TextStyle? labelStyle;
   final double insets;
 
   const _LegacyNavBar({
@@ -349,6 +378,8 @@ class _LegacyNavBar extends StatelessWidget {
     required this.onTap,
     this.activeColor,
     this.inactiveColor,
+    required this.iconSize,
+    this.labelStyle,
     required this.insets,
   });
 
@@ -394,19 +425,28 @@ class _LegacyNavBar extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        item.icon,
-                        size: 26,
-                        color: isActive ? themeActiveColor : themeInactiveColor,
+                      IconTheme(
+                        data: IconThemeData(
+                          color: isActive ? themeActiveColor : themeInactiveColor,
+                          size: iconSize,
+                        ),
+                        child: item.iconWidget ??
+                            Icon(
+                              item.icon,
+                              size: iconSize,
+                              color: isActive ? themeActiveColor : themeInactiveColor,
+                            ),
                       ),
                       SizedBox(height: insets * 0.375),
                       Text(
                         item.label,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: isActive
-                                  ? themeActiveColor
-                                  : themeInactiveColor,
-                              fontWeight: FontWeight.w500,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.merge(labelStyle)
+                            .copyWith(
+                              color: isActive ? themeActiveColor : themeInactiveColor,
+                              fontWeight: labelStyle?.fontWeight ?? FontWeight.w500,
                             ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

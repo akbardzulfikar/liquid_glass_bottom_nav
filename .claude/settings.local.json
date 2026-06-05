@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git stash *)",
+      "Bash(git commit -m ' *)",
+      "WebFetch(domain:pub.dev)"
+    ]
+  }
+}

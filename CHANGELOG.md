@@ -1,6 +1,20 @@
+## 0.0.4
+
+* Add `iconSize` param to control icon size across all tabs (default: 22).
+* Add `labelStyle` param for custom label typography, merged over `bodySmall`. Color always follows active/inactive color.
+* Add `iconWidget` to `LiquidGlassNavItem` for custom icon widgets (SVG, asset, painter). Takes priority over `icon`; wrapped in `IconTheme` for automatic color inheritance.
+* Make `icon` optional in `LiquidGlassNavItem` — required only when `iconWidget` is not provided.
+* Fix held bubble capsule clipping outside leftmost/rightmost tab boundaries during drag.
+* Rewrite README with full API reference, usage examples, and Impeller setup instructions.
+
+## 0.0.3
+
+* Embed `liquid_glass_renderer` internally for zero-dependency usage.
+* Add physics-based squish and stretch animations that react smoothly to drag velocity.
+
 ## 0.0.2
 
-* Depend on stable `liquid_glass_renderer` version ^0.2.0.
+* Update metadata and prepare for initial release.
 
 ## 0.0.1
 
