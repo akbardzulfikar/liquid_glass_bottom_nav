@@ -2,7 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'src/liquid_glass_renderer/liquid_glass_renderer.dart'
     show LiquidGlass, LiquidGlassSettings, LiquidRoundedSuperellipse,
-        GlassGlow, GlassGlowLayer;
+        GlassGlow, GlassGlowLayer, LiquidGlassLayer;
+import 'src/liquid_glass_renderer/src/liquid_glass_render_scope.dart'
+    show LiquidGlassRenderScope;
+
+export 'src/liquid_glass_renderer/liquid_glass_renderer.dart'
+    show LiquidGlassLayer, LiquidGlassSettings;
 
 class LiquidGlassNavItem {
   final String id;
@@ -157,9 +162,11 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
                   shape: LiquidRoundedSuperellipse(
                     borderRadius: 34.0,
                     side: BorderSide(
+                      // Light mode: stronger white edge so capsule reads
+                      // against light backgrounds (mirrors iOS behaviour).
                       color: isDark
                           ? Colors.white.withValues(alpha: 0.08)
-                          : Colors.white.withValues(alpha: 0.18),
+                          : Colors.white.withValues(alpha: 0.55),
                       width: 1.0,
                     ),
                   ),
@@ -167,13 +174,15 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
                 child: LiquidGlass.withOwnLayer(
                   shape: const LiquidRoundedSuperellipse(borderRadius: 34.0),
                   settings: LiquidGlassSettings(
+                    // Light mode: high white tint for vibrancy, blur kept at 1
+                    // so the capsule reads as clean white without any fogging.
                     glassColor: isDark
                         ? Colors.white.withValues(alpha: 0.04)
-                        : Colors.white.withValues(alpha: 0.05),
+                        : Colors.white.withValues(alpha: 0.76),
                     thickness: 32,
                     blur: 1,
                     saturation: 1.8,
-                    lightIntensity: isDark ? 0.15 : 0.9,
+                    lightIntensity: isDark ? 0.15 : 1.0,
                     ambientStrength: 0.2,
                   ),
                   child: const SizedBox.expand(),
@@ -291,11 +300,11 @@ class _LiquidGlassNavBarState extends State<LiquidGlassNavBar>
                                   ),
                                   curve: isDragging ? Curves.easeOut : Curves.elasticOut,
                                   decoration: BoxDecoration(
-                                    color: activeColor.withValues(
-                                      alpha: isDragging ? 0.25 : 0.15,
-                                    ),
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: isDragging ? 0.15 : 0.08)
+                                        : activeColor.withValues(alpha: isDragging ? 0.22 : 0.15),
                                     borderRadius: BorderRadius.circular(999),
-                                    border: isDragging 
+                                    border: isDragging
                                         ? Border.all(
                                             color: activeColor.withValues(alpha: 0.4),
                                             width: 1.5,
@@ -491,6 +500,9 @@ class LiquidGlassBackButton extends StatefulWidget {
   /// Color of the chevron icon. Defaults to [ColorScheme.onSurface].
   final Color? color;
 
+  /// The icon to display. Defaults to [Icons.chevron_left_rounded].
+  final IconData icon;
+
   /// Size of the glass pill. Defaults to 44.
   final double size;
 
@@ -504,6 +516,7 @@ class LiquidGlassBackButton extends StatefulWidget {
     super.key,
     this.onTap,
     this.color,
+    this.icon = Icons.chevron_left_rounded,
     this.size = 44.0,
     this.borderRadius = 14.0,
     this.impellerSupported = true,
@@ -542,7 +555,7 @@ class _LiquidGlassBackButtonState extends State<LiquidGlassBackButton>
     if (!widget.impellerSupported) {
       return IconButton(
         onPressed: widget.onTap ?? () => Navigator.of(context).maybePop(),
-        icon: Icon(Icons.chevron_left_rounded, color: iconColor),
+        icon: Icon(widget.icon, color: iconColor),
       );
     }
 
@@ -597,7 +610,7 @@ class _LiquidGlassBackButtonState extends State<LiquidGlassBackButton>
                   ),
                   child: SizedBox.expand(
                     child: Icon(
-                      Icons.chevron_left_rounded,
+                      widget.icon,
                       size: widget.size * 0.55,
                       color: iconColor,
                     ),
@@ -609,5 +622,216 @@ class _LiquidGlassBackButtonState extends State<LiquidGlassBackButton>
         ),
       ),
     );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// LiquidGlassContainer
+// ---------------------------------------------------------------------------
+
+/// A general-purpose frosted-glass container.
+///
+/// Can be used to wrap any widget with the liquid glass effect.
+/// If [onTap] is provided, it acts as a button with scale animation.
+class LiquidGlassContainer extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final double? width;
+  final double? height;
+  final EdgeInsetsGeometry? padding;
+  final double borderRadius;
+  final bool impellerSupported;
+
+  /// Glass tint color. Alpha controls opacity of the tint.
+  ///
+  /// For iOS-native-style colored material (e.g. dark gray widgets), set this
+  /// to the desired color with alpha ~0.6–0.8 and pair with [blur] ≥ 20 and
+  /// [saturation] ≥ 2.0.
+  final Color? color;
+
+  /// Solid fill painted inside the glass shape, beneath the content.
+  ///
+  /// Use this when you want a solid background (e.g. white cards) while
+  /// still keeping glass edge glow and refraction effects at the border.
+  /// Unlike [color] (which is a shader tint), this is a true opaque fill.
+  final Color? backgroundColor;
+
+  final double? blur;
+  final double? lightIntensity;
+  final double? ambientStrength;
+
+  /// Saturation of content visible through the glass (vibrancy).
+  ///
+  /// 1.0 = no change. Values > 1.0 boost saturation (iOS vibrancy look).
+  /// Defaults to 1.8. Set to 2.5+ for the iOS native material appearance.
+  final double? saturation;
+
+  /// Thickness of the glass surface (controls refraction strength).
+  /// Defaults to 32.
+  final double? thickness;
+
+  /// When false, the container joins an ancestor [LiquidGlassLayer] instead
+  /// of creating its own layer. Falls back to own layer if no ancestor exists.
+  /// Use this when grouping many containers for better performance.
+  final bool ownLayer;
+
+  const LiquidGlassContainer({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.width,
+    this.height,
+    this.padding,
+    this.borderRadius = 14.0,
+    this.impellerSupported = true,
+    this.color,
+    this.backgroundColor,
+    this.blur,
+    this.lightIntensity,
+    this.ambientStrength,
+    this.saturation,
+    this.thickness,
+    this.ownLayer = true,
+  });
+
+  @override
+  State<LiquidGlassContainer> createState() => _LiquidGlassContainerState();
+}
+
+class _LiquidGlassContainerState extends State<LiquidGlassContainer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pressCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 80),
+    reverseDuration: const Duration(milliseconds: 200),
+    lowerBound: 0.95,
+    upperBound: 1.0,
+    value: 1.0,
+  );
+
+  @override
+  void dispose() {
+    _pressCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(_) => _pressCtrl.reverse();
+  void _onTapUp(_) => _pressCtrl.forward();
+  void _onTapCancel() => _pressCtrl.forward();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Widget content = widget.child;
+    if (widget.padding != null) {
+      content = Padding(padding: widget.padding!, child: content);
+    }
+
+    // Solid fill beneath the content — true opaque background independent
+    // of the glass tint shader. Painted here so both Impeller and legacy
+    // paths benefit.
+    if (widget.backgroundColor != null) {
+      content = ColoredBox(color: widget.backgroundColor!, child: content);
+    }
+
+    if (!widget.impellerSupported) {
+      final plainContainer = Container(
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+          color: widget.backgroundColor ??
+              widget.color ??
+              Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+        ),
+        child: widget.backgroundColor != null ? widget.child : content,
+      );
+
+      if (widget.onTap != null) {
+        return InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          child: plainContainer,
+        );
+      }
+      return plainContainer;
+    }
+
+    final glassShape = LiquidRoundedSuperellipse(borderRadius: widget.borderRadius);
+
+    // Use parent layer if available and ownLayer is false — much cheaper
+    // when many containers are grouped (e.g. a grid of cards).
+    final hasParentLayer = !widget.ownLayer &&
+        LiquidGlassRenderScope.maybeOf(context) != null;
+
+    final glassSettings = LiquidGlassSettings(
+      glassColor: widget.color ?? (isDark
+          ? Colors.white.withValues(alpha: 0.04)
+          : Colors.white.withValues(alpha: 0.05)),
+      thickness: widget.thickness ?? 32,
+      blur: widget.blur ?? 1,
+      saturation: widget.saturation ?? 1.8,
+      lightIntensity: widget.lightIntensity ?? (isDark ? 0.15 : 0.9),
+      ambientStrength: widget.ambientStrength ?? 0.2,
+    );
+
+    final container = Container(
+      width: widget.width,
+      height: widget.height,
+      decoration: ShapeDecoration(
+        shape: glassShape,
+        shadows: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 0,
+            spreadRadius: 1,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipPath(
+        clipper: ShapeBorderClipper(shape: glassShape),
+        child: GlassGlowLayer(
+          child: GlassGlow(
+            glowColor: Colors.white.withValues(alpha: 0.35),
+            glowRadius: 1.2,
+            child: hasParentLayer
+                ? LiquidGlass(
+                    shape: glassShape,
+                    child: content,
+                  )
+                : LiquidGlass.withOwnLayer(
+                    shape: glassShape,
+                    settings: glassSettings,
+                    child: content,
+                  ),
+          ),
+        ),
+      ),
+    );
+
+    if (widget.onTap != null) {
+      return GestureDetector(
+        onTapDown: _onTapDown,
+        onTapUp: _onTapUp,
+        onTapCancel: _onTapCancel,
+        onTap: widget.onTap,
+        child: AnimatedBuilder(
+          animation: _pressCtrl,
+          builder: (context, child) => Transform.scale(
+            scale: _pressCtrl.value,
+            child: child,
+          ),
+          child: container,
+        ),
+      );
+    }
+
+    return container;
   }
 }

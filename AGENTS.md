@@ -23,6 +23,18 @@ Use `[LGN-000]` for work not tied to a specific task.
 
 Backlog: `.claude/tasks/backlog.json` — source of truth for both Claude and Codex.
 GitHub Project: https://github.com/users/akbardzulfikar/projects/3
+Status values: `backlog` → `in_progress` → `review` → `done`
+
+## Renderer performance rules
+
+- **Never animate a `LiquidGlass` shape's position or size** — forces `toImageSync()` every frame.
+- Keep the glass background static. All interaction feedback (bubble, tilt) must use plain Flutter widgets.
+- Set `blur` on `LiquidGlassLayer`, never inside `LiquidGlassBlendGroup` — causes artifacts.
+- Max 16 shapes per `LiquidGlassBlendGroup`.
+- `LiquidGlassLayer` auto-falls back to `FakeGlass` on non-Impeller targets.
+- `ownLayer: false` on `LiquidGlassContainer` shares a parent `LiquidGlassLayer` (N containers → 1 GPU pass). Use this for card grids.
+- `backgroundColor` on `LiquidGlassContainer` is a `ColoredBox` (true opaque fill), not shader tint. Use it when you need solid-color glass.
+- `glassColor` is a shader tint — background bleeds through regardless of alpha. It is NOT a solid fill.
 
 ## Workflow rules
 
@@ -33,17 +45,19 @@ GitHub Project: https://github.com/users/akbardzulfikar/projects/3
   - `.codex/plans/` — create or update a plan file for non-trivial work
 - `CLAUDE.md` and `AGENTS.md` must stay in sync — changes to one apply to both.
 
-## Key constraints
+## Publishing
 
-- **Never animate a `LiquidGlass` shape's position or size** — forces expensive GPU re-render every frame.
-- The glass pill background must stay static. Interaction feedback (bubble, tilt) uses plain Flutter `BoxDecoration` / `Transform`.
-- `icon` on `LiquidGlassNavItem` is optional when `iconWidget` is provided; one of the two is required.
+1. Ask user if version bump is needed before committing
+2. Bump `version` in `pubspec.yaml`
+3. Add entry to `CHANGELOG.md`
+4. `flutter pub publish --dry-run`
+5. `flutter pub publish`
 
 ## Package structure
 
 ```
 lib/
-  liquid_glass_bottom_nav.dart   ← public API
+  liquid_glass_bottom_nav.dart   ← public API (also exports LiquidGlassLayer, LiquidGlassSettings)
   src/
     liquid_glass_renderer/       ← embedded liquid_glass_renderer 0.2.0-dev.4
 example/

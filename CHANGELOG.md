@@ -1,3 +1,13 @@
+## 0.0.8
+
+* Add `ownLayer` param to `LiquidGlassContainer` — when `false`, the container joins a parent `LiquidGlassLayer` instead of creating its own layer, reducing N shader passes to 1 for grouped cards.
+* Add `backgroundColor` param to `LiquidGlassContainer` — true opaque solid fill inside the glass shape, independent of the `glassColor` shader tint. Enables iOS-native-style solid-color glass containers.
+* Add `saturation` and `thickness` params to `LiquidGlassContainer` — previously hardcoded, now fully customizable for vibrancy and refraction tuning.
+* Export `LiquidGlassLayer` and `LiquidGlassSettings` from the main library entry point.
+* Add `LiquidGlassRenderScope.maybeOf(BuildContext)` for safe scope detection.
+* Nav bar light mode: active bubble indicator now uses `activeColor` tint instead of white, making it visible against the white capsule background.
+* Nav bar light mode: capsule `glassColor` alpha increased to 0.76 and `blur` settled at 1 for clean vibrant white appearance without fogging.
+
 ## 0.0.7
 
 * Add `LiquidGlassBackButton` — floating frosted-glass back button with chevron icon, touch glow via `GlassGlow`, and press scale feedback. Falls back to plain `IconButton` on non-Impeller targets.
