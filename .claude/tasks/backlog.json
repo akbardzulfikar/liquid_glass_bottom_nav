@@ -125,7 +125,7 @@
       "title": "LiquidGlassContainer enhancements: ownLayer, backgroundColor, saturation, thickness + nav bar light mode polish",
       "description": "New params on LiquidGlassContainer: ownLayer (share parent LiquidGlassLayer for perf), backgroundColor (true solid fill vs shader tint), saturation (vibrancy), thickness (refraction). Export LiquidGlassLayer+LiquidGlassSettings. Add LiquidGlassRenderScope.maybeOf(). Nav bar: active bubble uses activeColor (not white) in light mode, capsule glassColor alpha 0.76, blur 1.",
       "assignee": "akbar",
-      "status": "in_progress",
+      "status": "done",
       "priority": "high",
       "category": "feature",
       "created": "2026-06-08",

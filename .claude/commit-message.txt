@@ -1,0 +1,12 @@
+[LGN-010] feat: add ownLayer, backgroundColor, saturation, thickness to LiquidGlassContainer
+
+- ownLayer: false lets containers share a parent LiquidGlassLayer (N containers → 1 GPU pass)
+- backgroundColor: Color? renders as ColoredBox inside the glass shape for true opaque solid fill,
+  independent of the glassColor shader tint
+- saturation and thickness params exposed (previously hardcoded) for iOS vibrancy-style tuning
+- Export LiquidGlassLayer and LiquidGlassSettings from main library entry point
+- Add LiquidGlassRenderScope.maybeOf() for safe scope detection (used by ownLayer logic)
+- Nav bar light mode: active bubble now uses activeColor tint instead of white for contrast
+  against the white capsule background (glassColor alpha raised to 0.76)
+- Nav bar: blur settled at 1 for clean vibrant appearance without fogging
+- Bump version to 0.0.8
