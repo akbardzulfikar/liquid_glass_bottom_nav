@@ -512,6 +512,19 @@ class LiquidGlassBackButton extends StatefulWidget {
   /// Whether the device supports Impeller. Defaults to true.
   final bool impellerSupported;
 
+  /// When false, joins the nearest ancestor [LiquidGlassLayer] instead of
+  /// creating its own. Use this when the button is grouped with other glass
+  /// elements under a shared [LiquidGlassLayer] — reduces N GPU layers to 1.
+  /// Falls back to own layer if no ancestor [LiquidGlassLayer] is found.
+  final bool ownLayer;
+
+  /// When true, renders the cheap [FakeGlass] approximation instead of the real
+  /// refraction shader — no geometry shader, no per-frame transform tracking.
+  /// Prefer this when the button sits on a flat/solid background (e.g. a
+  /// gradient header) or inside scrolling/paging content, where the real
+  /// effect is both invisible (nothing to refract) and a per-frame cost.
+  final bool fake;
+
   const LiquidGlassBackButton({
     super.key,
     this.onTap,
@@ -520,6 +533,8 @@ class LiquidGlassBackButton extends StatefulWidget {
     this.size = 44.0,
     this.borderRadius = 14.0,
     this.impellerSupported = true,
+    this.ownLayer = true,
+    this.fake = false,
   });
 
   @override
@@ -559,6 +574,14 @@ class _LiquidGlassBackButtonState extends State<LiquidGlassBackButton>
       );
     }
 
+    final glassShape = LiquidRoundedSuperellipse(borderRadius: widget.borderRadius);
+    final hasParentLayer = !widget.ownLayer &&
+        LiquidGlassRenderScope.maybeOf(context) != null;
+
+    final glassIcon = SizedBox.expand(
+      child: Icon(widget.icon, size: widget.size * 0.55, color: iconColor),
+    );
+
     return GestureDetector(
       onTapDown: _onTapDown,
       onTapUp: _onTapUp,
@@ -574,7 +597,7 @@ class _LiquidGlassBackButtonState extends State<LiquidGlassBackButton>
           width: widget.size,
           height: widget.size,
           decoration: ShapeDecoration(
-            shape: LiquidRoundedSuperellipse(borderRadius: widget.borderRadius),
+            shape: glassShape,
             shadows: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.08),
@@ -589,33 +612,28 @@ class _LiquidGlassBackButtonState extends State<LiquidGlassBackButton>
             ],
           ),
           child: ClipPath(
-            clipper: ShapeBorderClipper(
-              shape: LiquidRoundedSuperellipse(borderRadius: widget.borderRadius),
-            ),
+            clipper: ShapeBorderClipper(shape: glassShape),
             child: GlassGlowLayer(
               child: GlassGlow(
                 glowColor: Colors.white.withValues(alpha: 0.35),
                 glowRadius: 1.2,
-                child: LiquidGlass.withOwnLayer(
-                  shape: LiquidRoundedSuperellipse(borderRadius: widget.borderRadius),
-                  settings: LiquidGlassSettings(
-                    glassColor: isDark
-                        ? Colors.white.withValues(alpha: 0.04)
-                        : Colors.white.withValues(alpha: 0.05),
-                    thickness: 32,
-                    blur: 1,
-                    saturation: 1.8,
-                    lightIntensity: isDark ? 0.15 : 0.9,
-                    ambientStrength: 0.2,
-                  ),
-                  child: SizedBox.expand(
-                    child: Icon(
-                      widget.icon,
-                      size: widget.size * 0.55,
-                      color: iconColor,
-                    ),
-                  ),
-                ),
+                child: hasParentLayer
+                    ? LiquidGlass(shape: glassShape, child: glassIcon)
+                    : LiquidGlass.withOwnLayer(
+                        shape: glassShape,
+                        fake: widget.fake,
+                        settings: LiquidGlassSettings(
+                          glassColor: isDark
+                              ? Colors.white.withValues(alpha: 0.04)
+                              : Colors.white.withValues(alpha: 0.05),
+                          thickness: 32,
+                          blur: 1,
+                          saturation: 1.8,
+                          lightIntensity: isDark ? 0.15 : 0.9,
+                          ambientStrength: 0.2,
+                        ),
+                        child: glassIcon,
+                      ),
               ),
             ),
           ),
@@ -675,6 +693,17 @@ class LiquidGlassContainer extends StatefulWidget {
   /// Use this when grouping many containers for better performance.
   final bool ownLayer;
 
+  /// When true, renders the cheap [FakeGlass] approximation instead of the real
+  /// refraction shader. [FakeGlass] skips the geometry shader and per-frame
+  /// transform tracking entirely, so it stays smooth inside scrolling/paging
+  /// content and does not distort under overscroll stretch.
+  ///
+  /// Use this for glass placed over a flat/solid background (e.g. a gradient
+  /// header), where real refraction has nothing meaningful to refract and the
+  /// result is visually indistinguishable from the cheap path. Reserve the real
+  /// effect ([fake] = false) for glass floating over varied content.
+  final bool fake;
+
   const LiquidGlassContainer({
     super.key,
     required this.child,
@@ -692,6 +721,7 @@ class LiquidGlassContainer extends StatefulWidget {
     this.saturation,
     this.thickness,
     this.ownLayer = true,
+    this.fake = false,
   });
 
   @override
@@ -808,6 +838,7 @@ class _LiquidGlassContainerState extends State<LiquidGlassContainer>
                 : LiquidGlass.withOwnLayer(
                     shape: glassShape,
                     settings: glassSettings,
+                    fake: widget.fake,
                     child: content,
                   ),
           ),
